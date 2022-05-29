@@ -1,4 +1,4 @@
-from gradients import norm
+from src.common.dot import norm
 import numpy as np
 
 

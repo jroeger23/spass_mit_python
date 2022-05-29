@@ -1,17 +1,9 @@
+from common.dot import norm
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
 import matplotlib
 import cv2
-
-def norm(m: npt.ArrayLike, lb: float = 0, ub: float = 1) -> npt.NDArray:
-  ret = np.ndarray(m.shape)
-  np.copyto(ret, m)
-  ret -= np.min(ret)
-  ret *= (ub-lb) / np.max(ret)
-  ret += lb
-  return ret
-
 
 def sobelCartesian(img: npt.ArrayLike) -> npt.NDArray:
   if len(img.shape) != 2:
