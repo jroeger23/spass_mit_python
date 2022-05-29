@@ -8,8 +8,7 @@ def norm(m: npt.ArrayLike, lb: float = 0, ub: float = 1) -> npt.NDArray:
   ret = np.ndarray(m.shape)
   np.copyto(ret, m)
   ret -= np.min(ret)
-  ret /= np.max(ret)
-  ret *= ub-lb
+  ret *= (ub-lb) / np.max(ret)
   ret += lb
   return ret
 
