@@ -1,4 +1,4 @@
-import imp
+from src.common.dot import norm
 import matplotlib as plt
 import numpy as np
 import networkx as nx
@@ -44,7 +44,7 @@ def plotWeightLayer(ax, weights : np.ndarray, dx : float, dy : float, cmap, show
 
   widths = nx.get_edge_attributes(g, 'weight')
   widths = np.array(list(widths.values()))
-  widths = np.log1p(np.abs(widths))/2
+  widths = norm(np.log1p(np.abs(widths)), lb=0, ub=3)
   widths = list(widths)
 
   nx.draw_networkx_nodes(g, ax=ax, pos=pos, node_color=n_colors)
