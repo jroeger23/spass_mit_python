@@ -13,7 +13,7 @@ class MSE(Loss):
     return np.square(y_output - y_expected).mean(axis=1)
 
   def gradient(self) -> npt.NDArray:
-    if self.y_output == None or self.y_expected == None:
+    if self.y_output is None or self.y_expected is None:
       raise RuntimeError("MSE.gradient(): no prior call to __call__()")
     return -2/self.y_output.shape[0] * (self.y_expected - self.y_output)
 
