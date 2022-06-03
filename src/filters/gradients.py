@@ -1,4 +1,4 @@
-from common.dot import norm
+from src.common.dot import norm
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
