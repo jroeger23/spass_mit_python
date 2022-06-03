@@ -11,7 +11,7 @@ class Sigmoid(ActivationLayer):
     return self.sigmoid
 
   def backward(self, gradient: np.ndarray) -> npt.NDArray:
-    if self.sigmoid == None:
+    if self.sigmoid is None:
       raise RuntimeError("Sigmoid.backward(): no prior forward() call")
     return gradient * self.sigmoid * (1 - self.sigmoid)
 
@@ -24,10 +24,10 @@ class ReLU(ActivationLayer):
 
   def forward(self, x_input: np.ndarray) -> npt.NDArray:
     self.x_input = x_input
-    np.stack((x_input, np.zeros(x_input.shape)), axis=-1).max(axis=-1)
+    return np.stack((x_input, np.zeros(x_input.shape)), axis=-1).max(axis=-1)
 
   def backward(self, gradient: np.ndarray) -> npt.NDArray:
-    if self.x_input == None:
+    if self.x_input is None:
       raise RuntimeError("ReLU.backward(): no prior forward() call")
     g = self.x_input > 0
     return g*gradient
