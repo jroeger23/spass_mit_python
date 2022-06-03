@@ -17,18 +17,18 @@ class LinearLayer(NNLayer):
     return m[:,1:]
 
   def forward(self, x_input : np.ndarray) -> npt.NDArray:
-    self.x_input = self.addBias(x_input)
+    self.x_input = LinearLayer.addBias(x_input)
     return self.x_input.dot(self.weights)
 
   def backward(self, gradient: np.ndarray) -> npt.NDArray:
-    if self.x_input == None:
+    if self.x_input is None:
       raise RuntimeError("LinearLayer.backward(): no prior call to forward()")
 
     self.dw = self.x_input.transpose().dot(gradient)
-    return self.removeBias(gradient.dot(self.weights.transpose()))
+    return LinearLayer.removeBias(gradient.dot(self.weights.transpose()))
 
   def fit(self, learning_rate):
-    if self.dw == None:
+    if self.dw is None:
       raise RuntimeError("LinearLayer.fit(): no prior call to backward()")
     self.weights -= learning_rate * self.dw
 
@@ -38,23 +38,41 @@ class MLP():
                hidden_act = ActivationLayer, output_act = ActivationLayer):
     self.layers = []
 
-    for i,o in zip([n_input] + n_hidden, n_hidden[1:]):
-      self.layers.append(LinearLayer(i,o))
-      self.layers.append(hidden_act())
+    if len(n_hidden) == 0:
+      self.layers.append(LinearLayer(n_input, n_output))
+    else:
+      for i,o in zip([n_input] + n_hidden, n_hidden):
+        self.layers.append(LinearLayer(i,o))
+        self.layers.append(hidden_act())
+      self.layers.append(LinearLayer(n_hidden[-1], n_output))
     
-    self.layers.append(LinearLayer(n_hidden[-1], n_output))
     self.layers.append(output_act())
+
+    dims = f"{n_input}"
+    for h in n_hidden:
+      dims += f"x{h}"
+    dims += f"x{n_output}"
+    self.description = f"MLP {dims}, {hidden_act()} (hidden), {output_act()} (out)"
 
   def forward(self, x_input : np.ndarray) -> npt.NDArray:
     for l in self.layers:
       x_input = l.forward(x_input)
     return x_input
 
-  def backward(self, loss : np.ndarray) -> npt.NDArray:
+  def backward(self, gradient : np.ndarray) -> npt.NDArray:
     for l in reversed(self.layers):
-      loss = l.backward(loss)
-    return loss
+      gradient = l.backward(gradient)
+    return gradient
 
   def fit(self, learning_rate):
     for l in self.layers:
       l.fit(learning_rate)
+
+  def classify(self, x_input : np.ndarray) -> npt.NDArray:
+    return np.argmax(self.forward(x_input), axis=1)
+
+  def weightsList(self):
+    return [l.weights.copy() for l in self.layers[::2]]
+
+  def __str__(self) -> str:
+    return self.description
