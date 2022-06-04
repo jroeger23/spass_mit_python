@@ -40,7 +40,7 @@ def plotMultiWeightLayer(ax, weights_list, dx : float, dy : float, colorize):
     corr = 0 if ix == (len(weights_list)-1) else 1 # do not add bias space for last layer
     adj = np.pad(adj, ((0,n_i), (0,n_o+corr)), 'constant', constant_values=(0,0))
     y2,x2 = adj.shape
-    adj[y1:y2,x1+corr:x2] = np.sign(weights) * norm(np.log1p(np.abs(weights)), lb=0.03, ub=3)
+    adj[y1:y2,x1+corr:x2] = np.sign(weights) * norm(np.log1p(np.abs(weights)), lb=0.2, ub=2.5)
 
     n_pos += [(dx*(ix+0.2),-(n_i/2)*dy)] + [(dx*ix,(y-(n_i/2))*dy) for y in range(1,n_i)]
     n_labels += ['B'] + ['']*(n_i-1)
@@ -55,7 +55,7 @@ def plotMultiWeightLayer(ax, weights_list, dx : float, dy : float, colorize):
   n_labels = dict(enumerate(n_labels))
   n_colors += [colorize(x) for x in range(0,weights_list[-1].shape[1])]
 
-  g = nx.from_numpy_array(adj, create_using=nx.DiGraph)
+  g = nx.from_numpy_array(adj, create_using=nx.Graph)
 
   # colorize edges
   e_colors = ['b' if d['weight'] < 0 else 'r' for u,v,d in g.edges.data()]
