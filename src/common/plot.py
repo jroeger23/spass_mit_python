@@ -26,8 +26,10 @@ def plotMultiWeightLayer(ax, weights_list, dx : float, dy : float, colorize):
   c_bias = plt.colors.to_rgba('seagreen')
   c_hidden = plt.colors.to_rgba('lightgray')
 
+  norm_weights = lambda w: np.sign(w) * norm(np.log1p(np.abs(w)), lb=0.05, ub=2.2)
+
   # gather adj matrix, node positions, node labels and node colors
-  adj = np.hstack((np.zeros((n_i0,n_i0+1)), weights_list[0]))
+  adj = np.hstack((np.zeros((n_i0,n_i0+1)), norm_weights(weights_list[0])))
   n_pos = [(0.2*dx, -(n_i0/2)*dy)] + [(0, (y-(n_i0/2))*dy) for y in range(1, n_i0)]
   n_labels = ['B'] + [f'$i_{x}$' for x in range(0, n_i0-1)]
   n_colors = [c_bias] + [c_input]*(n_i0-1)
@@ -40,7 +42,7 @@ def plotMultiWeightLayer(ax, weights_list, dx : float, dy : float, colorize):
     corr = 0 if ix == (len(weights_list)-1) else 1 # do not add bias space for last layer
     adj = np.pad(adj, ((0,n_i), (0,n_o+corr)), 'constant', constant_values=(0,0))
     y2,x2 = adj.shape
-    adj[y1:y2,x1+corr:x2] = np.sign(weights) * norm(np.log1p(np.abs(weights)), lb=0.2, ub=2.5)
+    adj[y1:y2,x1+corr:x2] = norm_weights(weights)
 
     n_pos += [(dx*(ix+0.2),-(n_i/2)*dy)] + [(dx*ix,(y-(n_i/2))*dy) for y in range(1,n_i)]
     n_labels += ['B'] + ['']*(n_i-1)
