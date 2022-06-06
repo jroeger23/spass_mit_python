@@ -1,6 +1,7 @@
 from src.neuronal_network.types import ActivationLayer
 import numpy as np
 import numpy.typing as npt
+import torch
 
 class Sigmoid(ActivationLayer):
   def __init__(self):
@@ -40,8 +41,8 @@ class SoftMax(ActivationLayer):
     self.softmax = None
 
   def forward(self, x_input: np.ndarray) -> npt.NDArray:
-    e = np.exp(x_input - np.c_[x_input.max(axis=1)]) # subtracting max cancels out
-    s = np.c_[e.sum(axis=1)]
+    e = np.exp(x_input - x_input.max(axis=1, keepdims=True)) # subtracting max cancels out
+    s = e.sum(axis=1, keepdims=True)
     self.softmax = np.divide(e, s, where=(s != 0.0))
     return self.softmax
 
@@ -51,7 +52,25 @@ class SoftMax(ActivationLayer):
 
     g = -self.softmax.dot(self.softmax)
     np.fill_diagonal(g, self.softmax * (1 - self.softmax))
-    return g.dot(gradient)
+    return gradient.dot(g)
+
+  def __str__(self) -> str:
+      return "softmax"
+    
+class SoftMaxTorch(ActivationLayer):
+  def __init__(self):
+    self.output = None
+    self.input = None
+
+  def forward(self, x_input):
+    self.input = torch.tensor(x_input, dtype=float, requires_grad=True)
+    self.output = torch.nn.functional.softmax(self.input, dim=1)
+    return self.output.detach().numpy()
+  
+  def backward(self, top_gradients):
+    top_gradients = torch.tensor(top_gradients, dtype=float)
+    grad = torch.autograd.grad(self.output, self.input, top_gradients)[0]
+    return grad.detach().numpy()
 
   def __str__(self) -> str:
       return "softmax"
