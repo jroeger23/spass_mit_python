@@ -3,9 +3,10 @@ import numpy as np
 import numpy.typing as npt
 
 class LinearLayer(NNLayer):
-  def __init__(self, n_input : int, n_output : int, mu = 0, sigma = 0.01):
-    self.weights = np.random.normal(mu, sigma, (n_input, n_output))
-    self.weights = np.vstack((np.zeros(n_output), self.weights))
+  def __init__(self, n_input : int, n_output : int):
+    n_input += 1
+    self.weights = np.random.normal(0, np.sqrt(2/n_input), (n_input, n_output))
+    #self.weights = np.vstack((np.zeros(n_output), self.weights))
     self.x_input = None
 
   def addBias(m : np.ndarray) -> npt.NDArray:
