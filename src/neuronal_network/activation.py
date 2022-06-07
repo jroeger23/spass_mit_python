@@ -50,9 +50,12 @@ class SoftMax(ActivationLayer):
     if self.softmax is None:
       raise RuntimeError("SoftMax.backward(): no prior forward() call")
 
-    g = -self.softmax.dot(self.softmax)
-    np.fill_diagonal(g, self.softmax * (1 - self.softmax))
-    return gradient.dot(g)
+
+    g = -np.einsum('ij,ik->ijk', self.softmax, self.softmax)
+    diags = self.softmax * (1 - self.softmax)
+    for ix in range(0,g.shape[0]):
+      np.fill_diagonal(g[ix], diags[ix])
+    return np.einsum('ik,ijk -> ij', gradient, g)
 
   def __str__(self) -> str:
       return "softmax"
@@ -64,10 +67,12 @@ class SoftMaxTorch(ActivationLayer):
 
   def forward(self, x_input):
     self.x_input = torch.tensor(x_input, dtype=float, requires_grad=True)
-    self.softmax = torch.nn.functional.softmax(self.input, dim=1)
+    self.softmax = torch.nn.functional.softmax(self.x_input, dim=1)
     return self.softmax.detach().numpy()
   
   def backward(self, gradient):
+    if self.x_input is None or self.softmax is None:
+      raise RuntimeError("SoftMaxTorch.backward(): no prior forward() call")
     gradient = torch.tensor(gradient, dtype=float)
     gradient = torch.autograd.grad(self.softmax, self.x_input, gradient)[0]
     return gradient.detach().numpy()
