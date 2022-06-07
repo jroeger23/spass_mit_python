@@ -59,18 +59,18 @@ class SoftMax(ActivationLayer):
     
 class SoftMaxTorch(ActivationLayer):
   def __init__(self):
-    self.output = None
-    self.input = None
+    self.x_input = None
+    self.softmax = None
 
   def forward(self, x_input):
-    self.input = torch.tensor(x_input, dtype=float, requires_grad=True)
-    self.output = torch.nn.functional.softmax(self.input, dim=1)
-    return self.output.detach().numpy()
+    self.x_input = torch.tensor(x_input, dtype=float, requires_grad=True)
+    self.softmax = torch.nn.functional.softmax(self.input, dim=1)
+    return self.softmax.detach().numpy()
   
-  def backward(self, top_gradients):
-    top_gradients = torch.tensor(top_gradients, dtype=float)
-    grad = torch.autograd.grad(self.output, self.input, top_gradients)[0]
-    return grad.detach().numpy()
+  def backward(self, gradient):
+    gradient = torch.tensor(gradient, dtype=float)
+    gradient = torch.autograd.grad(self.softmax, self.x_input, gradient)[0]
+    return gradient.detach().numpy()
 
   def __str__(self) -> str:
       return "softmax"
