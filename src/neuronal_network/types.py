@@ -8,7 +8,7 @@ class NNLayer():
   def backward(self, gradient : np.ndarray) -> npt.NDArray:
     raise NotImplementedError("NNLayer.backward() not implemented")
 
-  def fit(self, learning_rate):
+  def fit(self, learning_rate, momentum=0.01):
     pass
 
 
