@@ -8,6 +8,7 @@ class LinearLayer(NNLayer):
     self.weights = np.random.normal(0, np.sqrt(2/n_input), (n_input, n_output))
     #self.weights = np.vstack((np.zeros(n_output), self.weights))
     self.x_input = None
+    self.last_v = np.zeros(self.weights.shape)
 
   def addBias(m : np.ndarray) -> npt.NDArray:
     n_samples, _ = m.shape
@@ -28,10 +29,12 @@ class LinearLayer(NNLayer):
     self.dw = self.x_input.transpose().dot(gradient)
     return LinearLayer.removeBias(gradient.dot(self.weights.transpose()))
 
-  def fit(self, learning_rate):
+  def fit(self, learning_rate, momentum = 0.01):
     if self.dw is None:
       raise RuntimeError("LinearLayer.fit(): no prior call to backward()")
-    self.weights -= learning_rate * self.dw
+
+    self.last_v = momentum * self.last_v + learning_rate * self.dw
+    self.weights -= self.last_v
 
 
 class MLP():
@@ -65,9 +68,9 @@ class MLP():
       gradient = l.backward(gradient)
     return gradient
 
-  def fit(self, learning_rate):
+  def fit(self, learning_rate, momentum = 0.01):
     for l in self.layers:
-      l.fit(learning_rate)
+      l.fit(learning_rate, momentum)
 
   def classify(self, x_input : np.ndarray) -> npt.NDArray:
     return np.argmax(self.forward(x_input), axis=1)
