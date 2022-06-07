@@ -55,7 +55,7 @@ class SoftMax(ActivationLayer):
     diags = self.softmax * (1 - self.softmax)
     for ix in range(0,g.shape[0]):
       np.fill_diagonal(g[ix], diags[ix])
-    return np.einsum('ik,ijk -> ij', gradient, g)
+    return np.einsum('ij,ijk -> ik', gradient, g)
 
   def __str__(self) -> str:
       return "softmax"
