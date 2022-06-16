@@ -12,12 +12,12 @@ def normal2DCluster(clusters):
 
 
 # r=a*e^(b*theta)
-def logSpiral2D(a, b, num_class_samples=1000, revs=2):
+def logSpiral2D(a, b, num_class_samples=1000, revs=2, off=1):
   thetas = np.c_[np.logspace(1, np.log((revs*2+1)*np.pi), num_class_samples, base=np.e)]
   thetas = np.abs(thetas - thetas.max())
 
   rs = a * np.exp(b * thetas)
-  rs = np.vstack((rs[::2]-a, rs, rs[::2]+a))
+  rs = np.vstack((rs[::2]-a*off, rs, rs[::2]+a*off))
 
   thetas = np.vstack((thetas[::2], thetas, thetas[::2]))
 
