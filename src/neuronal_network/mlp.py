@@ -1,14 +1,12 @@
-from src.neuronal_network.types import ActivationLayer, NNLayer
+from src.neuronal_network.types import ActivationLayer, NNLayer, Optimizer
 import numpy as np
 import numpy.typing as npt
 
 class LinearLayer(NNLayer):
-  def __init__(self, n_input : int, n_output : int):
+  def __init__(self, n_input : int, n_output : int, optimizer = Optimizer()):
     n_input += 1
     self.weights = np.random.normal(0, np.sqrt(2/n_input), (n_input, n_output))
-    #self.weights = np.vstack((np.zeros(n_output), self.weights))
-    self.x_input = None
-    self.last_v = np.zeros(self.weights.shape)
+    self.optimizer = optimizer
 
   def addBias(m : np.ndarray) -> npt.NDArray:
     n_samples, _ = m.shape
@@ -20,35 +18,28 @@ class LinearLayer(NNLayer):
 
   def forward(self, x_input : np.ndarray) -> npt.NDArray:
     self.x_input = LinearLayer.addBias(x_input)
+    self.optimizer.forward(self.x_input)
     return self.x_input.dot(self.weights)
 
   def backward(self, gradient: np.ndarray) -> npt.NDArray:
-    if self.x_input is None:
-      raise RuntimeError("LinearLayer.backward(): no prior call to forward()")
-
-    self.dw = self.x_input.transpose().dot(gradient)
+    self.optimizer.backward(gradient)
     return LinearLayer.removeBias(gradient.dot(self.weights.transpose()))
 
-  def fit(self, learning_rate, momentum = 0.01):
-    if self.dw is None:
-      raise RuntimeError("LinearLayer.fit(): no prior call to backward()")
-
-    self.last_v = momentum * self.last_v + learning_rate * self.dw
-    self.weights -= self.last_v
-
+  def fit(self):
+    self.optimizer.adjust(self.weights)
 
 class MLP():
   def __init__(self, n_input : int, n_hidden : list, n_output : int,
-               hidden_act = ActivationLayer, output_act = ActivationLayer):
+               hidden_act = ActivationLayer, output_act = ActivationLayer, optimizer = Optimizer):
     self.layers = []
 
     if len(n_hidden) == 0:
       self.layers.append(LinearLayer(n_input, n_output))
     else:
       for i,o in zip([n_input] + n_hidden, n_hidden):
-        self.layers.append(LinearLayer(i,o))
+        self.layers.append(LinearLayer(i,o, optimizer()))
         self.layers.append(hidden_act())
-      self.layers.append(LinearLayer(n_hidden[-1], n_output))
+      self.layers.append(LinearLayer(n_hidden[-1], n_output, optimizer()))
     
     self.layers.append(output_act())
 
@@ -56,7 +47,7 @@ class MLP():
     for h in n_hidden:
       dims += f"x{h}"
     dims += f"x{n_output}"
-    self.description = f"MLP {dims}, {hidden_act()} (hidden), {output_act()} (out)"
+    self.description = f"MLP {dims}, {hidden_act()} (hidden), {output_act()} (out), {optimizer()}"
 
   def forward(self, x_input : np.ndarray) -> npt.NDArray:
     for l in self.layers:
@@ -68,9 +59,9 @@ class MLP():
       gradient = l.backward(gradient)
     return gradient
 
-  def fit(self, learning_rate, momentum = 0.01):
+  def fit(self):
     for l in self.layers:
-      l.fit(learning_rate, momentum)
+      l.fit()
 
   def classify(self, x_input : np.ndarray) -> npt.NDArray:
     return np.argmax(self.forward(x_input), axis=1)
