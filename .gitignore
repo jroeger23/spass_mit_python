@@ -4,3 +4,4 @@
 __pycache__
 render/*
 data/*
+model/*
