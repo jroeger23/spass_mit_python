@@ -7,6 +7,7 @@ class LinearLayer(NNLayer):
     n_input += 1
     self.weights = np.random.normal(0, np.sqrt(2/n_input), (n_input, n_output))
     self.optimizer = optimizer
+    self.x_input = None
 
   def addBias(m : np.ndarray) -> npt.NDArray:
     n_samples, _ = m.shape
@@ -18,11 +19,14 @@ class LinearLayer(NNLayer):
 
   def forward(self, x_input : np.ndarray) -> npt.NDArray:
     self.x_input = LinearLayer.addBias(x_input)
-    self.optimizer.forward(self.x_input)
     return self.x_input.dot(self.weights)
 
   def backward(self, gradient: np.ndarray) -> npt.NDArray:
-    self.optimizer.backward(gradient)
+    if self.x_input is None:
+      raise RuntimeError("LinearLayer.backward(): No prior call to forward()")
+
+    dw = self.x_input.transpose().dot(gradient)
+    self.optimizer.backward(dw)
     return LinearLayer.removeBias(gradient.dot(self.weights.transpose()))
 
   def fit(self):

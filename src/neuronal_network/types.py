@@ -33,10 +33,7 @@ class Loss:
     return ""
 
 class Optimizer:
-  def forward(self, x_input: np.ndarray) -> None:
-    pass
-
-  def backward(self, gradient: np.ndarray) -> None:
+  def backward(self, weights_gradient: np.ndarray) -> None:
     pass
 
   def adjust(self, tgt_weight: np.ndarray) -> None:
