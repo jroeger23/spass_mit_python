@@ -1,6 +1,7 @@
 from src.neuronal_network.types import ActivationLayer, NNLayer, Optimizer
 import numpy as np
 import numpy.typing as npt
+import pickle
 
 class LinearLayer(NNLayer):
   def __init__(self, n_input : int, n_output : int, optimizer = Optimizer()):
@@ -68,6 +69,14 @@ class MLP():
 
   def weightsList(self):
     return [l.weights.copy() for l in self.layers[::2]]
+
+  def save(self, fname : str) -> None:
+    with open(fname, mode='wb') as f:
+      pickle.dump(self, f)
+
+  def load(fname : str):
+    with open(fname, mode='rb') as f:
+      return pickle.load(f)
 
   def __str__(self) -> str:
     return self.description
