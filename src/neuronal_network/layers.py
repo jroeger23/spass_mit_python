@@ -1,3 +1,4 @@
+from typing import Tuple
 from src.neuronal_network.types import Optimizer, NNLayer
 import numpy as np
 import numpy.typing as npt
@@ -31,3 +32,29 @@ class LinearLayer(NNLayer):
 
   def fit(self):
     self.optimizer.adjust(self.weights)
+
+
+class ConvolutionLayer(NNLayer):
+  def __init__(self, input_dims : Tuple[int, int, int], kernel_dims : Tuple[int, int]) -> None:
+    ih, iw, ic = input_dims
+    kh, kw = kernel_dims
+
+    self.kernel = np.random.normal(0, np.sqrt(2/(iw*ih)), (1, kh, kw, 1))
+
+
+  def forward(self, x_input: np.ndarray) -> npt.NDArray:
+    il, ih, iw, ic = x_input.shape
+    _, kh, kw, _ = self.kernel.shape
+    pad_y, pad_x = kh//2, kw//2
+
+    y_output = np.zeros((il, ih-2*pad_y, iw-2*pad_x, ic))
+
+    for y in range(0, ih-2*pad_y):
+      for x in range(0, iw-2*pad_x):
+        y_output[:,y,x,:] = np.sum(x_input[:,y:y+kh,x:x+kw,:] * self.kernel, axis=(1,2))
+
+    return y_output
+
+
+    def backward(self, gradient: np.ndarray) -> npt.NDArray:
+      pass

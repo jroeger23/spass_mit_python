@@ -1,4 +1,4 @@
-from src.neuronal_network.mlp import LinearLayer
+from src.neuronal_network.layers import ConvolutionLayer, LinearLayer
 
 import numpy as np
 
@@ -22,3 +22,25 @@ def test_removeBias():
   ret = LinearLayer.removeBias(LinearLayer.addBias(ds))
 
   np.testing.assert_array_equal(ds, ret)
+
+
+def test_ConvolutionLayerForward():
+  # shape check
+
+  il, ih, iw, ic = 20,50,40,3
+
+  data = np.random.random((il,ih,iw,ic))
+
+  cl = ConvolutionLayer((ih,iw,ic), (3,3))
+
+  ret = cl.forward(data)
+
+  rl, rh, rw, rc = ret.shape
+
+  # invariant
+  assert il == rl
+  assert ic == rc
+
+  # pad
+  assert rh == ih-2
+  assert rw == iw-2
