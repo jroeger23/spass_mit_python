@@ -83,3 +83,17 @@ class ConvolutionLayer(NNLayer):
 
   def fit(self):
     self.optimizer.adjust(self.kernel)
+
+  
+class FlattenLayer(NNLayer):
+  def __init__(self) -> None:
+    self.shape = None
+
+  def forward(self, x_input : np.ndarray) -> npt.NDArray:
+    self.shape = x_input.shape
+    return x_input.flatten()
+
+  def backward(self, gradient : np.ndarray) -> npt.NDArray:
+    if self.shape is None:
+      raise RuntimeError("FlattenLayer.backward(): no prior call to forward()")
+    return gradient.reshape(self.shape)
