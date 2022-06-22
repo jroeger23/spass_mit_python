@@ -91,7 +91,8 @@ class FlattenLayer(NNLayer):
 
   def forward(self, x_input : np.ndarray) -> npt.NDArray:
     self.shape = x_input.shape
-    return x_input.flatten()
+    n_samples, ih, iw, ic = self.shape
+    return x_input.reshape((n_samples, ih*iw*ic))
 
   def backward(self, gradient : np.ndarray) -> npt.NDArray:
     if self.shape is None:
