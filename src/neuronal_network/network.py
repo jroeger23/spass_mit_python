@@ -64,10 +64,10 @@ class CNN():
 
     ih, iw = input_dims
     for k_dim in kernel_dims:
-      self.layer.append(ConvolutionLayer((ih,iw,1, k_dim, optimizer())))
-      self.layer.append(hidden_act())
-      ih -= k_dim[0]+1
-      iw -= k_dim[1]+1
+      self.layers.append(ConvolutionLayer((ih,iw,1), k_dim, optimizer()))
+      self.layers.append(hidden_act())
+      ih -= k_dim[0]-1
+      iw -= k_dim[1]-1
 
     self.layers.append(FlattenLayer())
 
@@ -79,6 +79,8 @@ class CNN():
 
     self.layers.append(LinearLayer(last_n, n_classes, optimizer()))
     self.layers.append(output_act())
+
+    self.description = "CNN"
 
   def forward(self, x_input : np.ndarray) -> npt.NDArray:
     for l in self.layers:
