@@ -1,5 +1,5 @@
 from src.neuronal_network.types import ActivationLayer, Optimizer
-from src.neuronal_network.layers import LinearLayer
+from src.neuronal_network.layers import LinearLayer, ConvolutionLayer, FlattenLayer
 import numpy as np
 import numpy.typing as npt
 import pickle
@@ -45,6 +45,57 @@ class MLP():
 
   def weightsList(self):
     return [l.weights.copy() for l in self.layers[::2]]
+
+  def save(self, fname : str) -> None:
+    with open(fname, mode='wb') as f:
+      pickle.dump(self, f)
+
+  def load(fname : str):
+    with open(fname, mode='rb') as f:
+      return pickle.load(f)
+
+  def __str__(self) -> str:
+    return self.description
+
+class CNN():
+  def __init__(self, input_dims, n_classes : int, kernel_dims, fully_connected,
+               hidden_act = ActivationLayer, output_act = ActivationLayer, optimizer = Optimizer):
+    self.layers = []
+
+    ih, iw = input_dims
+    for k_dim in kernel_dims:
+      self.layer.append(ConvolutionLayer((ih,iw,1, k_dim, optimizer())))
+      self.layer.append(hidden_act())
+      ih -= k_dim[0]+1
+      iw -= k_dim[1]+1
+
+    self.layers.append(FlattenLayer())
+
+    last_n = ih*iw
+    for fc_n in fully_connected:
+      self.layers.append(LinearLayer(last_n, fc_n, optimizer()))
+      self.layers.append(hidden_act())
+      last_n = fc_n
+
+    self.layers.append(LinearLayer(last_n, n_classes, optimizer()))
+    self.layers.append(output_act())
+
+  def forward(self, x_input : np.ndarray) -> npt.NDArray:
+    for l in self.layers:
+      x_input = l.forward(x_input)
+    return x_input
+
+  def backward(self, gradient : np.ndarray) -> npt.NDArray:
+    for l in reversed(self.layers):
+      gradient = l.backward(gradient)
+    return gradient
+
+  def fit(self):
+    for l in self.layers:
+      l.fit()
+
+  def classify(self, x_input : np.ndarray) -> npt.NDArray:
+    return np.argmax(self.forward(x_input), axis=1)
 
   def save(self, fname : str) -> None:
     with open(fname, mode='wb') as f:
