@@ -35,17 +35,22 @@ class LinearLayer(NNLayer):
 
 
 class ConvolutionLayer(NNLayer):
-  def __init__(self, input_dims : Tuple[int, int, int], kernel_dims : Tuple[int, int]) -> None:
+  def __init__(self, input_dims : Tuple[int, int, int], kernel_dims : Tuple[int, int],
+               optimizer = Optimizer()) -> None:
     ih, iw, ic = input_dims
     kh, kw = kernel_dims
 
     self.kernel = np.random.normal(0, np.sqrt(2/(iw*ih)), (1, kh, kw, 1))
+    self.optimizer = optimizer
+    self.x_input = None
 
 
   def forward(self, x_input: np.ndarray) -> npt.NDArray:
     il, ih, iw, ic = x_input.shape
     _, kh, kw, _ = self.kernel.shape
     pad_y, pad_x = kh//2, kw//2
+
+    self.x_input = x_input
 
     y_output = np.zeros((il, ih-2*pad_y, iw-2*pad_x, ic))
 
@@ -55,6 +60,19 @@ class ConvolutionLayer(NNLayer):
 
     return y_output
 
+  def backward(self, gradient: np.ndarray) -> npt.NDArray:
+    il, ih, iw, ic = self.x_input.shape
+    _, kh, kw, _ = self.kernel.shape
+    pad_y, pad_x = kh//2, kw//2
 
-    def backward(self, gradient: np.ndarray) -> npt.NDArray:
-      pass
+    dk = np.zeros(self.kernel.shape)
+
+    for y in range(kh):
+      for x in range(kw):
+        x_input_cut = self.x_input[:,y:ih-kh+y+1,x:iw-kw+x+1,:]
+        dk[0,y,x,0] = np.sum(x_input_cut * gradient)
+
+    self.optimizer.backward(dk)
+
+  def fit(self):
+    self.optimizer.adjust(self.kernel)
