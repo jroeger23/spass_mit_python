@@ -48,15 +48,13 @@ class ConvolutionLayer(NNLayer):
   def forward(self, x_input: np.ndarray) -> npt.NDArray:
     il, ih, iw, ic = x_input.shape
     _, kh, kw, _ = self.kernel.shape
-    pad_y, pad_x = kh//2, kw//2
 
     self.x_input = x_input
 
-    y_output = np.zeros((il, ih-2*pad_y, iw-2*pad_x, ic))
+    y_output = np.zeros((il, ih-kh+1, iw-kw+1, ic))
 
-    for y in range(0, ih-2*pad_y):
-      for x in range(0, iw-2*pad_x):
-        y_output[:,y,x,:] = np.sum(x_input[:,y:y+kh,x:x+kw,:] * self.kernel, axis=(1,2))
+    for y, x in np.ndindex(y_output.shape[1:3]):
+      y_output[:,y,x,:] = np.sum(x_input[:,y:y+kh,x:x+kw,:] * self.kernel, axis=(1,2))
 
     return y_output
 
