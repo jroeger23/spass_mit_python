@@ -61,16 +61,25 @@ class ConvolutionLayer(NNLayer):
   def backward(self, gradient: np.ndarray) -> npt.NDArray:
     il, ih, iw, ic = self.x_input.shape
     _, kh, kw, _ = self.kernel.shape
-    pad_y, pad_x = kh//2, kw//2
 
     dk = np.zeros(self.kernel.shape)
-
-    for y in range(kh):
-      for x in range(kw):
+    
+    for y,x in np.ndindex(dk.shape[1:3]):
         x_input_cut = self.x_input[:,y:ih-kh+y+1,x:iw-kw+x+1,:]
         dk[0,y,x,0] = np.sum(x_input_cut * gradient)
 
     self.optimizer.backward(dk)
+
+    grad_pad_d = ((0,0), (kh-1, kh-1), (kw-1, kw-1), (0,0))
+    grad_pad_v = ((0,0), (0,0), (0,0), (0,0))
+    grad_pad = np.pad(gradient, grad_pad_d, mode='constant', constant_values=grad_pad_v)
+    dx = np.zeros(self.x_input.shape)
+    flipped_kernel = np.flip(self.kernel, axis=(1,2))
+
+    for y,x in np.ndindex((ih,iw)):
+      dx[:,y,x,:] = np.sum(grad_pad[:,y:y+kh,x:x+kw,:] * flipped_kernel)
+
+    return dx
 
   def fit(self):
     self.optimizer.adjust(self.kernel)
