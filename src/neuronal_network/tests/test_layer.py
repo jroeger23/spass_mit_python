@@ -1,4 +1,4 @@
-from src.neuronal_network.layers import ConvolutionLayer, LinearLayer
+from src.neuronal_network.layers import ConvolutionLayer, LinearLayer, ConvolutionLayerTorch
 
 import numpy as np
 
@@ -27,7 +27,7 @@ def test_removeBias():
 def test_ConvolutionLayerForward():
   # shape check
 
-  il, ih, iw, ic = 20,50,40,3
+  il, ih, iw, ic = 20,50,40,1
 
   data = np.random.random((il,ih,iw,ic))
 
@@ -44,3 +44,8 @@ def test_ConvolutionLayerForward():
   # pad
   assert rh == ih-2
   assert rw == iw-2
+
+  # with torch
+
+  verifier = ConvolutionLayerTorch(1, 1, (3,3))
+  expected = verifier.forward(data)
