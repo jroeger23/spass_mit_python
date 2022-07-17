@@ -1,5 +1,5 @@
 from src.neuronal_network.types import ActivationLayer, Optimizer
-from src.neuronal_network.layers import LinearLayer, ConvolutionLayer, FlattenLayer
+from src.neuronal_network.layers import ConvolutionLayerTorch, LinearLayer, ConvolutionLayer, FlattenLayer
 import numpy as np
 import numpy.typing as npt
 import pickle
@@ -64,7 +64,7 @@ class CNN():
 
     ih, iw = input_dims
     for k_dim in kernel_dims:
-      self.layers.append(ConvolutionLayer((ih,iw,1), k_dim, optimizer()))
+      self.layers.append(ConvolutionLayerTorch(1, 1, k_dim, 1, 0, optimizer()))
       self.layers.append(hidden_act())
       ih -= k_dim[0]-1
       iw -= k_dim[1]-1

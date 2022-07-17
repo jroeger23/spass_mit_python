@@ -2,6 +2,8 @@ from typing import Tuple
 from src.neuronal_network.types import Optimizer, NNLayer
 import numpy as np
 import numpy.typing as npt
+import torch
+import torch.nn.functional as fn
 
 class LinearLayer(NNLayer):
   def __init__(self, n_input : int, n_output : int, optimizer = Optimizer()):
@@ -33,6 +35,45 @@ class LinearLayer(NNLayer):
   def fit(self):
     self.optimizer.adjust(self.weights)
 
+
+class ConvolutionLayerTorch(NNLayer):
+  def __init__(self, n_input : int, n_output : int, kernel : Tuple[int, int], stride=1, padding=0, optimizer=Optimizer()):
+    weights = np.random.normal(0, np.sqrt(2/n_input), (n_input, n_output, kernel[0], kernel[1]))
+
+    self.weights = torch.tensor(weights, dtype=float, requires_grad=True)
+    self.x_input = None
+    self.y_output = None
+    self.stride = stride
+    self.padding = padding
+    self.optimizer = optimizer
+
+
+  def forward(self, x_input: np.ndarray) -> npt.NDArray:
+    self.x_input = torch.tensor(x_input, dtype=float, requires_grad=True)
+
+
+    self.y_output = fn.conv2d(self.x_input, self.weights, stride=self.stride, padding=self.padding)
+
+    return self.y_output.detach().numpy()
+
+  def backward(self, gradient: np.ndarray) -> npt.NDArray:
+    if self.x_input is None or self.y_output is None:
+      raise RuntimeError("ConvolutionLayerTorch.backward(): no prior call to forward()")
+      
+    gradient = torch.tensor(gradient, dtype=float)
+    gradient = torch.autograd.grad(self.y_output, self.x_input, gradient, is_grads_batched=True)[0]
+
+    w_gradient = torch.autograd.grad(self.y_output, self.weights, gradient, is_grads_batched=True)[0]
+    w_gradient = w_gradient.detach().numpy()
+    self.optimizer.backward(w_gradient)
+
+  def fit(self):
+    weights = self.weights.detach().numpy()
+    self.optimizer.adjust(weights)
+    self.weights = torch.tensor(weights, dtype=float, requires_grad=True)
+
+
+    
 
 class ConvolutionLayer(NNLayer):
   def __init__(self, input_dims : Tuple[int, int, int], kernel_dims : Tuple[int, int],
