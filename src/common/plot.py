@@ -1,7 +1,10 @@
+from tkinter import W
 from src.common.dot import norm
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
+
+from src.common.eval import evalLabelProbability
 
 
 def sample2DClassifier(img, classifier : callable, colorize : callable,
@@ -103,3 +106,27 @@ def plotWeightLayer(ax, weights : np.ndarray, dx : float, dy : float, cmap, show
   nx.draw_networkx_edges(g, ax=ax, pos=pos, edge_color=e_colors, width=widths)
   if show_weight:
     nx.draw_networkx_edge_labels(g, ax=ax, pos=pos, edge_labels=e_labels)
+
+
+
+def plotImagesProb(net, images, labels, labels_map):
+    '''
+    Generates matplotlib Figure using a trained network, along with images
+    and labels from a batch, that shows the network's top prediction along
+    with its probability, alongside the actual label, coloring this
+    information based on whether the prediction was correct or not.
+    Uses the "images_to_probs" function.
+    '''
+    preds, probs = evalLabelProbability(net, images)
+    images = images.cpu().detach()
+    # plot the images in the batch, along with predicted and true labels
+    fig = plt.figure(figsize=(2.5*len(images),3), dpi=100)
+    for idx, (img, label, pred, prob) in enumerate(zip(images, labels, preds, probs)):
+        ax = fig.add_subplot(1, len(images), idx+1, xticks=[], yticks=[])
+        ax.imshow(img.permute(1,2,0))
+        ax.set_title("{0}, {1:.1f}%\n(label: {2})".format(
+            labels_map[pred],
+            prob * 100.0,
+            labels_map[label.item()]),
+                    color=("green" if pred==label.item() else "red"))
+    return fig
