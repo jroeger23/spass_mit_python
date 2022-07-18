@@ -3,6 +3,7 @@ from src.common.dot import norm
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
+import torch
 
 from src.common.eval import evalLabelProbability
 
@@ -130,3 +131,23 @@ def plotImagesProb(net, images, labels, labels_map):
             labels_map[label.item()]),
                     color=("green" if pred==label.item() else "red"))
     return fig
+
+
+def plotImagesProbBar(images, labels, preds, probs, labels_map, rows, cols, cmap='gray'):
+  fig = plt.figure(dpi=100, figsize=(cols*7, rows*3))
+
+  for idx, (img, label, pred, prob) in enumerate(zip(images, labels, preds, probs)):
+      ax = fig.add_subplot(rows, cols*2, 2*idx+1, xticks=[], yticks=[])
+      ax.imshow(img, cmap=cmap)
+      ax.set_title("{0}, {1:.1f}%\n(label: {2})".format(
+          labels_map[pred.item()],
+          prob[pred.item()].item() * 100.0,
+          labels_map[label.item()]),
+                  color=("green" if pred==label.item() else "red"))
+
+      ax = fig.add_subplot(rows, cols*2, 2*idx+2, xticks=[], yticks=[])
+      ax.barh(y=range(10), width=prob.cpu().detach(), tick_label=list(labels_map.values()))
+      
+
+  fig.tight_layout()
+  return fig
